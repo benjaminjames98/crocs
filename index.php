@@ -1,6 +1,6 @@
 <?php
 
-require_once 'imports/permission_levels/public_only.php';
+require_once 'imports/permission_levels/public.php';
 
 ?>
 <html lang="en">
@@ -9,8 +9,13 @@ require_once 'imports/permission_levels/public_only.php';
 </head>
 <body>
 <?php require_once 'imports/navbar_primary.php'; ?>
+<?php if (isset($msg)) echo $msg; ?>
 <h1>CROCS</h1>
 <h2>CityNetworks Recognition of Competency System</h2>
-<a href="login.php">login</a>
+
+<?php // TODO explanation of how the system works ?>
+
+Front page with description of how it all works
+
 </body>
 </html>

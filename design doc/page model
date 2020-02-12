@@ -1,20 +1,22 @@
-Index Page
-- public/private
-- info about how the system works
+Index Page (all)
+[x] public/private
+[ ] info about how the system works
 
-Login Page
-- user can login
-- user can access tools
+Login Page (public)
+[x] user can login
+[x] user can access tools
 
-Dashboard
-- Can see list of current students
-- can invite student to mentoring experience
+Dashboard (users)
+[x] logged-in landing page
+[ ] Can see list of current students
+[ ] can invite student to mentoring experience
+[x] can create a deacon
 
-Network (leaders)
-- Can search/see all students
+Network (elders/regional)
+[x] Can search/see info for all students
+[ ] elder/regional can invite students to be commended by them
 
-Personal Info page
-- student/leaders can edit info
-- leader can invite student to education
-- student accepts
-- leader can assess competence
+Personal Info page (regional can see/edit all students, elders just their students)
+[ ] users can edit info
+[ ] student can accept training offers
+[ ] leader can assess competence

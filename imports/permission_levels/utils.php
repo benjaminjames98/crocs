@@ -1,10 +1,10 @@
 <?php
-$permission_levels = ['leader', 'certified'];
+$permission_levels = ['deacon', 'elder', 'regional'];
 
 /**
  * returns boolean value if the current user's permission is greater than or equal to the given permission string.
  *
- * @param $perm - ['student','staff','admin']
+ * @param $perm - ['deacon', 'elder', 'regional']
  * @return bool - does the user have at least this permission level
  */
 function has_permission($perm) {

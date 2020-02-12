@@ -6,7 +6,7 @@ session_start();
 if (!logged_in()) {
     header("Location: login.php");
     die();
-} else if (!has_permission('certified')) {
-    header("Location: index.php");
+} else if (!has_permission('elder')) {
+    header("Location: dashboard.php");
     die();
 }

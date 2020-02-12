@@ -6,7 +6,7 @@ session_start();
 if (!logged_in()) {
     header("Location: login.php");
     die();
-} else if (!has_permission('leader')) {
-    header("Location: index.php");
+} else if (!has_permission('deacon')) {
+    header("Location: dashboard.php");
     die();
 }

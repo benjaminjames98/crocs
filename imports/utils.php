@@ -7,7 +7,7 @@
  * This function is the basic DB access function used throughout the site
  */
 function get_db() {
-  $db = mysqli_connect('localhost', 'root', 'root', 'FedNews');
+  $db = mysqli_connect('localhost', 'root', 'root', 'crocs');
 
   if (!$db) die(mysqli_connect_error());
   else return $db;
