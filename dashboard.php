@@ -12,7 +12,9 @@ if (isset($_POST['action'])) {
     $name = strtolower($_POST['name']);
     $password = get_hash($_POST['password']);
 
-    $query = "INSERT INTO user (name, password, permissions, email) VALUES (?,?,'deacon',?)";
+    $query = <<<SQL
+INSERT INTO user (name, password, permissions, email) VALUES (?,?,'deacon',?)
+SQL;
     $stmt = $db->prepare($query);
     $stmt->bind_param("sss", $name, $password, $_POST['email']);
     // TODO error logging

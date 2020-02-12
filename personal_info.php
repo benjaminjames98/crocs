@@ -73,14 +73,14 @@ if (isset($_REQUEST['action'])) {
   Confirm Password:<br>
   <input type="password" required oninput="check(this)"> <br>
   <script type='text/javascript'>
-      function check(input) {
-          if (input.value !== document.getElementById('password').value) {
-              input.setCustomValidity('Password Must be Matching.');
-          } else {
-              // input is valid -- reset the error message
-              input.setCustomValidity('');
-          }
+    function check(input) {
+      if (input.value !== document.getElementById('password').value) {
+        input.setCustomValidity('Password Must be Matching.');
+      } else {
+        // input is valid -- reset the error message
+        input.setCustomValidity('');
       }
+    }
   </script>
   <input type="hidden" name="action" value="password">
   <input class="button" type="submit" value="Save">
@@ -96,9 +96,16 @@ if (isset($_REQUEST['action'])) {
 <form method="post">
   Permissions: <br>
   <select name="permissions" required>
-    <option value="deacon" <?= $permissions == 'deacon' ? 'selected' : '' ?>>deacon</option>
-    <option value="elder" <?= $permissions == 'elder' ? 'selected' : '' ?>>elder</option>
-    <option value="regional" <?= $permissions == 'regional' ? 'selected' : '' ?>>regional</option>
+    <option value="deacon" <?= $permissions == 'deacon' ? 'selected' : '' ?>>
+      deacon
+    </option>
+    <option value="elder" <?= $permissions == 'elder' ? 'selected' : '' ?>>
+      elder
+    </option>
+    <option
+        value="regional" <?= $permissions == 'regional' ? 'selected' : '' ?>>
+      regional
+    </option>
   </select>
   <input type="hidden" name="action" value="permissions">
   <input class="button" type="submit" value="Save">

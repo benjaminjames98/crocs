@@ -8,15 +8,18 @@ Login Page (public)
 
 Dashboard (users)
 [x] logged-in landing page
-[ ] Can see list of current students
-[ ] can invite student to mentoring experience
+[ ] can see list of current students
+[ ] can invite student to work on a specific competency together
 [x] can create a deacon
+[ ] can see/accept invitations to mentoring relationships
+[ ] can see/accept invitations to work on specific competencies
+[ ] can remove one of your mentors
 
 Network (elders/regional)
-[x] Can search/see info for all students
-[ ] elder/regional can invite students to be commended by them
+[x] can search/see info for all students
+[x] elder/regional can invite students to enter a mentoring relationship with them
 
 Personal Info page (regional can see/edit all students, elders just their students)
-[ ] users can edit info
-[ ] student can accept training offers
+[x] users can edit info
+[ ] can see progress on specific competencies
 [ ] leader can assess competence

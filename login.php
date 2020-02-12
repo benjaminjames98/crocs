@@ -11,17 +11,19 @@ if (isset($_POST['name'])) {
   require_once 'imports/utils.php';
   $db = get_db();
 
-  $stmt = $db->prepare("SELECT password, permissions FROM user WHERE name = ?;");
+  $query = "SELECT id, password, permissions FROM user WHERE name = ?;";
+  $stmt = $db->prepare($query);
   $stmt->bind_param("s", $name);
   $stmt->execute();
   $stmt->store_result();
   if ($stmt->num_rows === 0) $msg = "we can't seem to find name: ${name}";
   else {
-    $stmt->bind_result($hash, $permissions);
+    $stmt->bind_result($id, $hash, $permissions);
     $stmt->fetch();
     if (password_verify($password, $hash)) {
       // correct login
       $_SESSION['name'] = $name;
+      $_SESSION['id'] = $id;
       set_permissions($permissions);
       header("Location: dashboard.php");
       die();
