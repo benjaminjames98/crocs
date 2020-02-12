@@ -1,6 +1,6 @@
 <?php
 
-include_once 'permission_levels/elder_only.php';
+include_once 'permission_levels/deacon_only.php';
 include_once "utils.php";
 $db = get_db();
 
@@ -38,28 +38,13 @@ $mentor_id = user_id($db, $mentor);
 if ($mentor_id == -1 || $mentee_id == -1)
   returnJson('fail');
 
-// check that connection doesn't already exist
-function relationship_exists($db, $mentee_id, $mentor_id) {
-  $query = "SELECT id FROM mentor_relationship WHERE mentee = ? and mentor = ?;";
-  $stmt = $db->prepare($query);
-  $stmt->bind_param("ii", $mentee_id, $mentor_id);
-  $stmt->execute();
-  $stmt->store_result();
-  if ($stmt->num_rows === 0) $result = false;
-  else $result = true;
-  $stmt->close();
-  return $result;
-}
-
-if (relationship_exists($db, $mentee_id, $mentor_id)) {
-  returnJson('already_requested');
-} else if (relationship_exists($db, $mentor_id, $mentee_id)) {
-  returnJson("can't mentor your mentor");
-}
-
 // create connection
-$query = "INSERT INTO mentor_relationship (mentee, mentor) values (?, ?)";
+$query = <<<SQL
+DELETE FROM mentor_relationship 
+WHERE (mentee = ? AND mentor = ?) 
+   OR (mentor = ? AND mentee = ?)
+SQL;
 $stmt = $db->prepare($query);
-$stmt->bind_param('ii', $mentee_id, $mentor_id);
+$stmt->bind_param('iiii', $mentee_id, $mentor_id, $mentee_id, $mentor_id);
 if ($stmt->execute()) returnJson('success');
 else returnJson('fail');

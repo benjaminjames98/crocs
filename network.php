@@ -1,7 +1,7 @@
 <?php
 
 require_once 'imports/permission_levels/elder_only.php';
-require_once 'imports/permission_levels/utils.php';
+require_once 'imports/permission_levels/permission_utils.php';
 
 require_once 'imports/utils.php';
 $db = get_db();

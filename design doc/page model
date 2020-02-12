@@ -8,12 +8,13 @@ Login Page (public)
 
 Dashboard (users)
 [x] logged-in landing page
-[ ] can see list of current students
+[x] can see list of current students
+[x] can see list of current mentors
 [ ] can invite student to work on a specific competency together
 [x] can create a deacon
 [ ] can see/accept invitations to mentoring relationships
 [ ] can see/accept invitations to work on specific competencies
-[ ] can remove one of your mentors
+[x] can remove one of your mentors/mentees
 
 Network (elders/regional)
 [x] can search/see info for all students
@@ -22,4 +23,8 @@ Network (elders/regional)
 Personal Info page (regional can see/edit all students, elders just their students)
 [x] users can edit info
 [ ] can see progress on specific competencies
-[ ] leader can assess competence
+[ ] leader can assess competencies
+
+Misc
+[ ] primary navigation only shows available pages
+[ ] personal info page access controls - regional, mentors, individual, and viewers

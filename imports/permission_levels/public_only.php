@@ -1,6 +1,6 @@
 <?php
 
-require_once 'utils.php';
+require_once 'permission_utils.php';
 session_start();
 
 if (logged_in()) {

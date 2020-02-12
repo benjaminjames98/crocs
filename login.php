@@ -1,7 +1,7 @@
 <?php
 
 require_once 'imports/permission_levels/public_only.php';
-require_once 'imports/permission_levels/utils.php';
+require_once 'imports/permission_levels/permission_utils.php';
 
 if (isset($_POST['name'])) {
   // if information is returned, attempt to log in

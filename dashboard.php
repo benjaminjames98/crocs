@@ -1,34 +1,76 @@
 <?php
 
 require_once 'imports/permission_levels/deacon_only.php';
-require_once 'imports/permission_levels/utils.php';
+require_once 'imports/permission_levels/permission_utils.php';
+require_once 'imports/utils.php';
+$db = get_db();
+
+
+// form actions - add person
 
 if (isset($_POST['action'])) {
   $action = $_POST['action'];
   if ($action == 'add_person') {
-    require_once 'imports/utils.php';
-    $db = get_db();
 
-    $name = strtolower($_POST['name']);
+    $new_name = strtolower($_POST['name']);
     $password = get_hash($_POST['password']);
 
     $query = <<<SQL
 INSERT INTO user (name, password, permissions, email) VALUES (?,?,'deacon',?)
 SQL;
     $stmt = $db->prepare($query);
-    $stmt->bind_param("sss", $name, $password, $_POST['email']);
+    $stmt->bind_param("sss", $new_name, $password, $_POST['email']);
     // TODO error logging
-    if ($stmt->execute()) $msg = "Success! An account has been created for $name";
+    if ($stmt->execute()) $msg = "Success! An account has been created for $new_name";
     else  $msg = "There was a problem with that:";
     $stmt->close();
   }
 }
+
+// current mentoring relationships
+$query = <<<SQL
+SELECT u1.name
+FROM user as u1, mentor_relationship as r, user as u2 
+WHERE u1.id = r.mentor AND u2.id=r.mentee AND u2.name = ? 
+ORDER BY name ASC;
+SQL;
+$stmt = $db->prepare($query);
+$stmt->bind_param('s', $_SESSION['name']);
+$stmt->execute();
+$stmt->store_result();
+$stmt->bind_result($name);
+$mentors = [];
+while ($stmt->fetch()) {
+  $mentors[] = ['name' => $name];
+}
+$stmt->close();
+
+$query = <<<SQL
+SELECT u1.name
+FROM user as u1, mentor_relationship as r, user as u2 
+WHERE u1.id = r.mentee AND u2.id=r.mentor AND u2.name = ? 
+ORDER BY name ASC;
+SQL;
+$stmt = $db->prepare($query);
+$stmt->bind_param('s', $_SESSION['name']);
+$stmt->execute();
+$stmt->store_result();
+$stmt->bind_result($name);
+$mentees = [];
+while ($stmt->fetch()) {
+  $mentees[] = ['name' => $name];
+}
+$stmt->close();
+
+// invitations to mentoring relationships
+
 
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <title>Login</title>
+  <script src="imports/js/utils.js"></script>
 </head>
 <body>
 
@@ -36,6 +78,36 @@ SQL;
 <?php if (isset($msg)) echo $msg; ?>
 <h1>CROCS</h1>
 <h2>Dashboard</h2>
+
+<section>
+  <h3>Your Mentors</h3>
+  <table>
+    <?php foreach ($mentors as $m) { ?>
+      <tr>
+        <td><?= $m['name'] ?></td>
+        <td><input type="button" value="Remove Mentor"
+                   onclick="remove_mentor_relationship(this,
+                   <?= "'{$_SESSION['name']}', '{$m['name']}'" ?>);"/>
+        </td>
+      </tr>
+    <?php } ?>
+  </table>
+</section>
+
+<section>
+  <h3>Your Mentees</h3>
+  <table>
+    <?php foreach ($mentees as $m) { ?>
+      <tr>
+        <td><?= $m['name'] ?></td>
+        <td><input type="button" value="Remove Mentor"
+                   onclick="remove_mentor_relationship(this,
+                   <?= "'{$_SESSION['name']}', '{$m['name']}'" ?>);"/>
+        </td>
+      </tr>
+    <?php } ?>
+  </table>
+</section>
 
 <section>
   <h3>Add Person</h3>
@@ -53,5 +125,41 @@ SQL;
   </form>
 </section>
 
+<script>
+  function remove_mentor_relationship(btn, mentor, mentee) {
+    // mentor/mentee are interchangable
+    if (mentor === mentee) {
+      show_dlg("Sorry, but you can't remove yourself from mentoring");
+      return;
+    }
+
+    btn.disabled = true;
+    jsonPost('imports/remove_mentee.php', {mentor: mentor, mentee: mentee},
+      json => {
+        if (json.msg === 'success') {
+          show_dlg(`success, your mentoring relationship with ${mentee} has `
+            + ` been ended`);
+          el('dlg_btn').onclick = function () {
+            location.reload();
+          };
+        } else
+          show_dlg(`Sorry. We were unable to complete that request. Please `
+            + `try again at a later time, or contact support.`);
+        btn.disabled = false;
+      }
+    );
+
+    function show_dlg(msg) {
+      el('dlg_content').innerText = msg;
+      _open('dlg');
+    }
+
+  }
+</script>
+
+<dialog id="dlg">
+  <p id="dlg_content">asd</p>
+  <input id='dlg_btn' type="button" value="Close" onclick="_close('dlg')"/>
+</dialog>
 </body>
 </html>

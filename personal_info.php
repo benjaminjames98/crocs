@@ -1,7 +1,7 @@
 <?php
 
 require_once 'imports/permission_levels/deacon_only.php';
-require_once 'imports/permission_levels/utils.php';
+require_once 'imports/permission_levels/permission_utils.php';
 
 require_once 'imports/utils.php';
 $db = get_db();
@@ -28,7 +28,6 @@ if (isset($_REQUEST['action'])) {
           set_permissions($data);
       }
       if ($column == 'name') $name = $data;
-
       header("Location: personal_info.php?leader_name=$name");
     } else {
       $msg = 'Something went terribly wrong';
@@ -95,21 +94,25 @@ if (isset($_REQUEST['action'])) {
 </form>
 <form method="post">
   Permissions: <br>
-  <select name="permissions" required>
-    <option value="deacon" <?= $permissions == 'deacon' ? 'selected' : '' ?>>
-      deacon
-    </option>
-    <option value="elder" <?= $permissions == 'elder' ? 'selected' : '' ?>>
-      elder
-    </option>
-    <option
-        value="regional" <?= $permissions == 'regional' ? 'selected' : '' ?>>
-      regional
-    </option>
-  </select>
-  <input type="hidden" name="action" value="permissions">
-  <input class="button" type="submit" value="Save">
-  <input class="button" type="Reset">
+  <?php if (has_permission('regional')) { ?>
+    <select name="permissions" required>
+      <option value="deacon" <?= $permissions == 'deacon' ? 'selected' : '' ?>>
+        deacon
+      </option>
+      <option value="elder" <?= $permissions == 'elder' ? 'selected' : '' ?>>
+        elder
+      </option>
+      <option
+          value="regional" <?= $permissions == 'regional' ? 'selected' : '' ?>>
+        regional
+      </option>
+    </select>
+    <input type="hidden" name="action" value="permissions">
+    <input class="button" type="submit" value="Save">
+    <input class="button" type="Reset">
+  <?php } else { ?>
+    <p><?= $permissions ?></p>
+  <?php } ?>
 </form>
 
 <h3>Competencies</h3>
