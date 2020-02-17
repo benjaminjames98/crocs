@@ -38,7 +38,7 @@ $mentor_id = user_id($db, $mentor);
 if ($mentor_id == -1 || $mentee_id == -1)
   returnJson('fail');
 
-// create connection
+// delete connection
 $query = <<<SQL
 DELETE FROM mentor_relationship 
 WHERE (mentee = ? AND mentor = ?) 
