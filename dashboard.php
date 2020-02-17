@@ -31,7 +31,7 @@ SQL;
 $query = <<<SQL
 SELECT u1.name
 FROM user as u1, mentor_relationship as r, user as u2 
-WHERE u1.id = r.mentor AND u2.id=r.mentee AND u2.name = ? 
+WHERE u1.id = r.mentor AND u2.id=r.mentee AND u2.name = ? AND accepted IS true 
 ORDER BY name ASC;
 SQL;
 $stmt = $db->prepare($query);
@@ -48,7 +48,7 @@ $stmt->close();
 $query = <<<SQL
 SELECT u1.name
 FROM user as u1, mentor_relationship as r, user as u2 
-WHERE u1.id = r.mentee AND u2.id=r.mentor AND u2.name = ? 
+WHERE u1.id = r.mentee AND u2.id=r.mentor AND u2.name = ? AND accepted IS true
 ORDER BY name ASC;
 SQL;
 $stmt = $db->prepare($query);
@@ -63,7 +63,22 @@ while ($stmt->fetch()) {
 $stmt->close();
 
 // invitations to mentoring relationships
-
+$query = <<<SQL
+SELECT u1.name
+FROM user as u1, mentor_relationship as r, user as u2 
+WHERE u1.id = r.mentor AND u2.id=r.mentee AND u2.name = ? AND accepted IS false 
+ORDER BY name ASC;
+SQL;
+$stmt = $db->prepare($query);
+$stmt->bind_param('s', $_SESSION['name']);
+$stmt->execute();
+$stmt->store_result();
+$stmt->bind_result($name);
+$offers = [];
+while ($stmt->fetch()) {
+  $offers[] = ['name' => $name];
+}
+$stmt->close();
 
 ?>
 <!DOCTYPE html>
@@ -110,6 +125,25 @@ $stmt->close();
 </section>
 
 <section>
+  <h3>Offers to Mentor You</h3>
+  <table>
+    <?php foreach ($offers as $o) { ?>
+      <tr>
+        <td><?= $o['name'] ?></td>
+        <td><input type="button" value="accept"
+                   onclick="accept_mentor_relationship(this,
+                   <?= "'{$o['name']}', '{$_SESSION['name']}', 'accept'" ?>);"/>
+        </td>
+        <td><input type="button" value="reject"
+                   onclick="accept_mentor_relationship(this,
+                   <?= "'{$o['name']}', '{$_SESSION['name']}', 'reject'" ?>);"/>
+        </td>
+      </tr>
+    <?php } ?>
+  </table>
+</section>
+
+<section>
   <h3>Add Person</h3>
   <form id="add_person" method="post">
     User: <br>
@@ -126,35 +160,65 @@ $stmt->close();
 </section>
 
 <script>
-  function remove_mentor_relationship(btn, mentor, mentee) {
-    // mentor/mentee are interchangable
-    if (mentor === mentee) {
-      show_dlg("Sorry, but you can't remove yourself from mentoring");
-      return;
+    function accept_mentor_relationship(btn, mentor, mentee, accept) {
+        btn.disabled = true;
+        jsonPost('imports/accept_mentor.php', {
+                mentor: mentor,
+                mentee: mentee,
+                accept: accept
+            },
+            json => {
+                if (json.msg === 'success') {
+                    if (accept === 'accept')
+                        show_dlg(`success, you have accepted ${mentee}'s mentoring offer`);
+                    else if (accept === 'reject')
+                        show_dlg(`success, you have rejected ${mentee}'s mentoring offer`);
+                    el('dlg_btn').onclick = function () {
+                        location.reload();
+                    };
+                } else {
+                    show_dlg(`Sorry. We were unable to complete that request. Please `
+                        + `try again at a later time, or contact support.`);
+                    btn.disabled = false;
+                }
+            }
+        );
+
+        function show_dlg(msg) {
+            el('dlg_content').innerText = msg;
+            _open('dlg');
+        }
     }
 
-    btn.disabled = true;
-    jsonPost('imports/remove_mentee.php', {mentor: mentor, mentee: mentee},
-      json => {
-        if (json.msg === 'success') {
-          show_dlg(`success, your mentoring relationship with ${mentee} has `
-            + ` been ended`);
-          el('dlg_btn').onclick = function () {
-            location.reload();
-          };
-        } else
-          show_dlg(`Sorry. We were unable to complete that request. Please `
-            + `try again at a later time, or contact support.`);
-        btn.disabled = false;
-      }
-    );
+    function remove_mentor_relationship(btn, mentor, mentee) {
+        // mentor/mentee are interchangable
+        if (mentor === mentee) {
+            show_dlg("Sorry, but you can't remove yourself from mentoring");
+            return;
+        }
 
-    function show_dlg(msg) {
-      el('dlg_content').innerText = msg;
-      _open('dlg');
+        btn.disabled = true;
+        jsonPost('imports/remove_mentee.php', {mentor: mentor, mentee: mentee},
+            json => {
+                if (json.msg === 'success') {
+                    show_dlg(`success, your mentoring relationship with ${mentee} has `
+                        + ` been ended`);
+                    el('dlg_btn').onclick = function () {
+                        location.reload();
+                    };
+                } else
+                    show_dlg(`Sorry. We were unable to complete that request. Please `
+                        + `try again at a later time, or contact support.`);
+                btn.disabled = false;
+            }
+        );
+
+        function show_dlg(msg) {
+            el('dlg_content').innerText = msg;
+            _open('dlg');
+        }
+
     }
-
-  }
 </script>
 
 <dialog id="dlg">

@@ -7,6 +7,7 @@ require_once 'imports/utils.php';
 $db = get_db();
 
 if (isset($_REQUEST['leader_name'])) $name = $_REQUEST['leader_name'];
+if (isset($_REQUEST['msg'])) $msg = $_REQUEST['msg'];
 else $name = $_SESSION['name'];
 
 if (isset($_REQUEST['action'])) {
@@ -28,7 +29,7 @@ if (isset($_REQUEST['action'])) {
           set_permissions($data);
       }
       if ($column == 'name') $name = $data;
-      header("Location: personal_info.php?leader_name=$name");
+      header("Location: personal_info.php?leader_name=$name&msg=change%20successful");
     } else {
       $msg = 'Something went terribly wrong';
     }
@@ -72,14 +73,14 @@ if (isset($_REQUEST['action'])) {
   Confirm Password:<br>
   <input type="password" required oninput="check(this)"> <br>
   <script type='text/javascript'>
-    function check(input) {
-      if (input.value !== document.getElementById('password').value) {
-        input.setCustomValidity('Password Must be Matching.');
-      } else {
-        // input is valid -- reset the error message
-        input.setCustomValidity('');
+      function check(input) {
+          if (input.value !== document.getElementById('password').value) {
+              input.setCustomValidity('Password Must be Matching.');
+          } else {
+              // input is valid -- reset the error message
+              input.setCustomValidity('');
+          }
       }
-    }
   </script>
   <input type="hidden" name="action" value="password">
   <input class="button" type="submit" value="Save">

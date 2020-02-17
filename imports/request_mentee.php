@@ -40,7 +40,11 @@ if ($mentor_id == -1 || $mentee_id == -1)
 
 // check that connection doesn't already exist
 function relationship_exists($db, $mentee_id, $mentor_id) {
-  $query = "SELECT id FROM mentor_relationship WHERE mentee = ? and mentor = ?;";
+  $query = <<<SQL
+SELECT id
+FROM mentor_relationship
+WHERE mentee = ? and mentor = ? AND accepted IS false;
+SQL;
   $stmt = $db->prepare($query);
   $stmt->bind_param("ii", $mentee_id, $mentor_id);
   $stmt->execute();
