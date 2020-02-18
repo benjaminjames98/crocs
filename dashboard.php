@@ -16,11 +16,11 @@ if (isset($_POST['action'])) {
     $password = get_hash($_POST['password']);
 
     $query = <<<SQL
-INSERT INTO user (name, password, permissions, email) VALUES (?,?,'deacon',?)
+INSERT INTO user (name, password, permissions, email)
+VALUES (?, ?, 'deacon', ?)
 SQL;
     $stmt = $db->prepare($query);
     $stmt->bind_param("sss", $new_name, $password, $_POST['email']);
-    // TODO error logging
     if ($stmt->execute()) $msg = "Success! An account has been created for $new_name";
     else  $msg = "There was a problem with that:";
     $stmt->close();
@@ -31,10 +31,14 @@ SQL;
 $mentors = get_mentors($_SESSION['name']);
 
 $query = <<<SQL
-SELECT u1.name
-FROM user as u1, mentor_relationship as r, user as u2 
-WHERE u1.id = r.mentee AND u2.id=r.mentor AND u2.name = ? AND accepted IS true
-ORDER BY name ASC;
+SELECT mentee.name
+FROM user as mentee,
+     mentor_relationship as rel,
+     user as mentor
+WHERE mentee.id = rel.mentee
+  AND mentor.id = rel.mentor
+  AND mentor.name = ?
+  AND accepted IS true;
 SQL;
 $stmt = $db->prepare($query);
 $stmt->bind_param('s', $_SESSION['name']);
@@ -49,10 +53,14 @@ $stmt->close();
 
 // invitations to mentoring relationships
 $query = <<<SQL
-SELECT u1.name
-FROM user as u1, mentor_relationship as r, user as u2 
-WHERE u1.id = r.mentor AND u2.id=r.mentee AND u2.name = ? AND accepted IS false 
-ORDER BY name ASC;
+SELECT mentor.name
+FROM user as mentor,
+     mentor_relationship as rel,
+     user as mentee
+WHERE mentor.id = rel.mentor
+  AND mentee.id = rel.mentee
+  AND mentee.name = ?
+  AND accepted IS false;
 SQL;
 $stmt = $db->prepare($query);
 $stmt->bind_param('s', $_SESSION['name']);
@@ -62,6 +70,35 @@ $stmt->bind_result($name);
 $offers = [];
 while ($stmt->fetch()) {
   $offers[] = ['name' => $name];
+}
+$stmt->close();
+
+
+// invitations to work on competencies
+$query = <<<SQL
+SELECT comp.id, mentor.name, course.name 
+FROM user as mentor,
+     mentor_relationship as rel,
+     user as mentee,
+     competency as comp,
+     course as course
+WHERE mentor.id = rel.mentor
+  AND mentee.id = rel.mentee
+  AND mentee.name = ?
+  AND comp.mentor_relationship = rel.id
+  AND comp.accepted IS false
+  AND course.id = comp.course
+ORDER BY course.name ASC;
+SQL;
+$stmt = $db->prepare($query);
+$stmt->bind_param('s', $_SESSION['name']);
+$stmt->execute();
+$stmt->store_result();
+$stmt->bind_result($comp_id, $mentor_name, $course_name);
+$competencies = [];
+while ($stmt->fetch()) {
+  $competencies[] = ['comp_id' => $comp_id, 'mentor_name' => $mentor_name,
+    'course_name' => $course_name];
 }
 $stmt->close();
 
@@ -124,6 +161,26 @@ $stmt->close();
         <td><input type="button" value="reject"
                    onclick="accept_mentor_relationship(this,
                    <?= "'{$o['name']}', '{$_SESSION['name']}', 'reject'" ?>);"/>
+        </td>
+      </tr>
+    <?php } ?>
+  </table>
+</section>
+
+<section>
+  <h3>Invitations to Work on Competencies</h3>
+  <table>
+    <?php foreach ($competencies as $c) { ?>
+      <tr>
+        <td><?= $c['course_name'] ?></td>
+        <td><?= $c['mentor_name'] ?></td>
+        <td><input type="button" value="accept"
+                   onclick="accept_competency_invitation(this,
+                   <?= "'{$c['comp_id']}', 'accept'" ?>);"/>
+        </td>
+        <td><input type="button" value="reject"
+                   onclick="accept_competency_invitation(this,
+                   <?= "'{$c['comp_id']}', 'reject'" ?>);"/>
         </td>
       </tr>
     <?php } ?>
@@ -206,6 +263,35 @@ $stmt->close();
     }
 
   }
+
+
+  function accept_competency_invitation(btn, comp_id, accept) {
+    btn.disabled = true;
+    jsonPost('imports/accept_competency_invitation.php',
+      {comp_id: comp_id, accept: accept},
+      json => {
+        if (json.msg === 'success') {
+          if (accept === 'accept')
+            show_dlg(`success, you are now working on your competency`);
+          else if (accept === 'reject')
+            show_dlg(`success, that competency invitation has been rejected`);
+          el('dlg_btn').onclick = function () {
+            location.reload();
+          };
+        } else
+          show_dlg(`Sorry. We were unable to complete that request. Please `
+            + `try again at a later time, or contact support.`);
+        btn.disabled = false;
+      }
+    );
+
+    function show_dlg(msg) {
+      el('dlg_content').innerText = msg;
+      _open('dlg');
+    }
+
+  }
+
 </script>
 
 <dialog id="dlg">

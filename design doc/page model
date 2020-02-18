@@ -12,9 +12,8 @@ Dashboard (users)
 [x] can see list of current mentors
 [x] can create a deacon
 [x] can see/accept invitations to mentoring relationships
-[ ] can see/accept invitations to work on specific competencies
+[x] can see/accept invitations to work on specific competencies
 [x] can remove one of your mentors/mentees
-[ ] confirmation for adding/deleting mentors
 
 Network (elders/regional)
 [x] can search/see info for all students
@@ -23,11 +22,22 @@ Network (elders/regional)
 Personal Info page (regional can see/edit all students, elders just their students)
 [x] users can edit info
 [x] feedback for successful data change
-[ ] can invite student to work on a specific competency together
+[x] can invite student to work on a specific competency together
 [x] can see progress on specific competencies
-[ ] leader can assess competencies (takes user to dedicated page)
+[x] leader can assess competencies (takes user to dedicated page)
+[ ] student can see progress on competencies
+[ ] double-check permission system
+
+Competency
+[x] mentor can access
+[x] mentor can change info
+[ ] mentor can cancel work on a competency
 
 Misc
 [ ] primary navigation only shows available pages
 [ ] personal info page access controls - regional, mentors, individual, and viewers
 [ ] page titles/logos
+[ ] personal info page uses json for info update
+[ ] confirmation for adding/deleting mentors on dashboard
+[ ] competencies can become archived?
+[ ] textarea input (project info) able to store special characters

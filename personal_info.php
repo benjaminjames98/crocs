@@ -15,8 +15,7 @@ if (isset($_REQUEST['leader_name']) || isset($_REQUEST['leader_id'])) {
     $query = "SELECT name FROM user WHERE name = ?;";
     $stmt = $db->prepare($query);
     $stmt->bind_param('s', $_REQUEST['leader_name']);
-  }
-  else if (isset($_REQUEST['leader_id'])) {
+  } else if (isset($_REQUEST['leader_id'])) {
     $query = "SELECT name FROM user WHERE id = ?;";
     $stmt = $db->prepare($query);
     $stmt->bind_param('s', $_REQUEST['leader_id']);
@@ -112,7 +111,7 @@ $stmt->close();
 // get user's competency info
 $query = <<<SQL
 SELECT mentor.name, course.name, comp.can_teach, comp.can_understand,
-       comp.can_demonstrate, comp.project_info, comp.id
+       comp.can_demonstrate, comp.id
 FROM user as mentee, user as mentor, course, competency as comp,
      mentor_relationship as rel
 WHERE mentee.name = ?
@@ -127,13 +126,13 @@ $stmt->bind_param('s', $name);
 $stmt->execute();
 $stmt->store_result();
 $stmt->bind_result($mentor_name, $course_name, $can_teach,
-  $can_understand, $can_demonstrate, $project_info, $comp_id);
+  $can_understand, $can_demonstrate, $comp_id);
 $competencies = [];
 while ($stmt->fetch()) {
   $competencies[] = ['mentor_name' => $mentor_name,
     'course_name' => $course_name, 'can_teach' => $can_teach,
     'can_understand' => $can_understand, 'can_demonstrate' => $can_demonstrate,
-    'project_info' => $project_info, 'comp_id' => $comp_id];
+    'comp_id' => $comp_id];
 }
 $stmt->close();
 ?>
@@ -226,12 +225,11 @@ $stmt->close();
         <tr>
           <td><?= $c['course_name'] ?></td>
           <td><?= $c['mentor_name'] ?></td>
-          <td><?= $c['can_teach'] ?></td>
           <td><?= $c['can_understand'] ?></td>
           <td><?= $c['can_demonstrate'] ?></td>
-          <td><?= $c['project_info'] ?></td>
+          <td><?= $c['can_teach'] ?></td>
           <?php if ($c['mentor_name'] == $_SESSION['name']) { ?>
-            <td><a href="personal_info.php?leader_name=<?= $c['comp_id'] ?>">Assess</a>
+            <td><a href="competency.php?comp_id=<?= $c['comp_id'] ?>">Assess</a>
             </td>
           <?php } else echo "<td></td>"; ?>
         </tr>

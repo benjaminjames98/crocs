@@ -5,7 +5,7 @@ require_once 'imports/permission_levels/public.php';
 ?>
 <html lang="en">
 <head>
-  <title>FedNews</title>
+  <title>Crocs</title>
 </head>
 <body>
 <?php require_once 'imports/navbar_primary.php'; ?>
