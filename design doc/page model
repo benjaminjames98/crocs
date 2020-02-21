@@ -31,7 +31,7 @@ Personal Info page (regional can see/edit all students, elders just their studen
 Competency
 [x] mentor can access
 [x] mentor can change info
-[ ] mentor can cancel work on a competency
+[x] mentor can cancel work on a competency
 
 Misc
 [ ] primary navigation only shows available pages
