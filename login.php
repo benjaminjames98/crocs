@@ -42,7 +42,7 @@ if (isset($_POST['name'])) {
   <title>Login</title>
 </head>
 <body>
-<?php require_once 'imports/navbar_primary.php'; ?>
+<?php require_once 'navbar_primary.php'; ?>
 <?php if (isset($msg)) echo $msg; ?>
 
 <form id="form" method="post">

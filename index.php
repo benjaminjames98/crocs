@@ -8,7 +8,7 @@ require_once 'imports/permission_levels/public.php';
   <title>Crocs</title>
 </head>
 <body>
-<?php require_once 'imports/navbar_primary.php'; ?>
+<?php require_once 'navbar_primary.php'; ?>
 <?php if (isset($msg)) echo $msg; ?>
 <h1>CROCS</h1>
 <h2>CityNetworks Recognition of Competency System</h2>

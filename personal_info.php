@@ -48,36 +48,45 @@ if (!$can_view) {
 
 // check if current viewer is a mentor
 $mentors = get_mentors($name);
-if (in_array($_SESSION['name'], $mentors)) {
-  $can_edit = true;
-  $is_mentor = true;
+foreach ($mentors as $m) {
+  if ($m['name'] === $_SESSION['name']) {
+    $can_edit = true;
+    $is_mentor = true;
+  }
 }
 
 // page starts here
 if (isset($_REQUEST['msg'])) $msg = $_REQUEST['msg'];
 if (isset($_REQUEST['action']) && $can_edit) {
   $action = $_REQUEST['action'];
-  if (in_array($action, ['name', 'password', 'permissions', 'email'])) {
-    $column = $action;
-    $data = $_REQUEST[$column];
-    if ($column == 'password') $data = get_hash($data);
-    if ($column == 'name') $data = strtolower($data);
+  if ($action == 'password') {
+    $hash = get_hash($_REQUEST[$action]);
+    $stmt = $db->prepare("UPDATE user SET password=? WHERE name=?;");
+    $stmt->bind_param('ss', $hash, $name);
+    if ($stmt->execute()) {
+      $msg .= 'Success! The password has been changed';
+    } else {
+      $msg .= "We weren't able to complete that request. Please try again later";
+    }
+  } else if ($action == 'info_update') {
+    $data['name'] = strtolower($_REQUEST['name']);
+    $data['email'] = $_REQUEST['email'];
+    $data['perms'] = $_REQUEST['permissions'];
 
-    $stmt = $db->prepare("UPDATE user SET $column=? WHERE name=?;");
-    $stmt->bind_param('ss', $data, $name);
+    $query = "UPDATE user SET name=?, email=?, permissions=? WHERE name=?;";
+    $stmt = $db->prepare($query);
+    $stmt->bind_param('ssss', $data['name'], $data['email'], $data['perms'], $name);
     if ($stmt->execute()) {
       if ($name == $_SESSION['name']) {
         // changing own details
-        if ($column == 'name')
-          $_SESSION['name'] = $data;
-        if ($column == 'permissions')
-          set_permissions($data);
+        $_SESSION['name'] = $data['name'];
+        set_permissions($data['name']);
       }
-      if ($column == 'name') $name = $data;
+      $name = $data['name'];
       header("Location: personal_info.php?leader_name=$name&msg=change%20successful");
-    } else {
-      $msg = 'Something went terribly wrong';
     }
+  } else {
+    $msg = 'Something went terribly wrong';
   }
 } else if (isset($action) && !$can_edit) {
   $msg = 'you do not have permission to edit this page';
@@ -111,7 +120,7 @@ $stmt->close();
 // get user's competency info
 $query = <<<SQL
 SELECT mentor.name, course.name, comp.can_teach, comp.can_understand,
-       comp.can_demonstrate, comp.id
+       comp.can_demonstrate, comp.id, comp.project_info
 FROM user as mentee, user as mentor, course, competency as comp,
      mentor_relationship as rel
 WHERE mentee.name = ?
@@ -126,24 +135,27 @@ $stmt->bind_param('s', $name);
 $stmt->execute();
 $stmt->store_result();
 $stmt->bind_result($mentor_name, $course_name, $can_teach,
-  $can_understand, $can_demonstrate, $comp_id);
+  $can_understand, $can_demonstrate, $comp_id, $project_info);
 $competencies = [];
 while ($stmt->fetch()) {
-  $competencies[] = ['mentor_name' => $mentor_name,
-    'course_name' => $course_name, 'can_teach' => $can_teach,
-    'can_understand' => $can_understand, 'can_demonstrate' => $can_demonstrate,
-    'comp_id' => $comp_id];
+  $competencies[] = ['mentor_name' => addslashes($mentor_name),
+    'course_name' => addslashes($course_name),
+    'can_teach' => addslashes($can_teach),
+    'can_understand' => addslashes($can_understand),
+    'can_demonstrate' => addslashes($can_demonstrate),
+    'comp_id' => addslashes($comp_id),
+    'project_info' => addslashes($project_info)];
 }
 $stmt->close();
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <title>Login</title>
+  <title><?= $name ?> - Personal Information</title>
   <script src="imports/js/utils.js"></script>
 </head>
 <body>
-<?php require_once 'imports/navbar_primary.php'; ?>
+<?php require_once 'navbar_primary.php'; ?>
 <?php if (isset($msg)) echo $msg; ?>
 <h1>CROCS</h1>
 <h2>Personal Info</h2>
@@ -151,16 +163,38 @@ $stmt->close();
 <section>
   <H3>Personal Info</H3>
   <form method="post">
-    Name: <br>
+    <br>Name: <br>
     <input name="name" type="text" value="<?= $name ?>" required> <br>
-    <input type="hidden" name="action" value="name">
+    <br>Email: <br>
+    <input name="email" type="text" value="<?= $email ?>" required> <br>
+    <br>Permissions: <br>
+    <?php if ($is_mentor) { ?>
+      <select name="permissions" required>
+        <option
+          value="deacon" <?= $permissions == 'deacon' ? 'selected' : '' ?>>
+          deacon
+        </option>
+        <option value="elder" <?= $permissions == 'elder' ? 'selected' : '' ?>>
+          elder
+        </option>
+        <option
+          value="regional" <?= $permissions == 'regional' ? 'selected' : '' ?>>
+          regional
+        </option>
+      </select>
+    <?php } else { ?>
+      <p><b><?= $permissions ?></b></p>
+      <input type="hidden" name="permissions" value="<?= $permissions ?>">
+    <?php } ?>
+    <input type="hidden" name="action" value="info_update">
+    <br>
     <input class="button" type="submit" value="Save">
     <input class="button" type="Reset">
   </form>
   <form method="post">
-    New Password:<br>
+    <br>New Password:<br>
     <input name="password" type="password" id="password" required> <br>
-    Confirm Password:<br>
+    <br>Confirm Password:<br>
     <input type="password" required oninput="check(this)"> <br>
     <script type='text/javascript'>
       function check(input) {
@@ -176,49 +210,22 @@ $stmt->close();
     <input class="button" type="submit" value="Save">
     <input class="button" type="Reset">
   </form>
-  <form method="post">
-    Email: <br>
-    <input name="email" type="text" value="<?= $email ?>" required> <br>
-    <input type="hidden" name="action" value="email">
-    <input class="button" type="submit" value="Save">
-    <input class="button" type="Reset">
-  </form>
-  <form method="post">
-    Permissions: <br>
-    <?php if ($is_mentor) { ?>
-      <select name="permissions" required>
-        <option
-          value="deacon" <?= $permissions == 'deacon' ? 'selected' : '' ?>>
-          deacon
-        </option>
-        <option value="elder" <?= $permissions == 'elder' ? 'selected' : '' ?>>
-          elder
-        </option>
-        <option
-          value="regional" <?= $permissions == 'regional' ? 'selected' : '' ?>>
-          regional
-        </option>
-      </select>
-      <input type="hidden" name="action" value="permissions">
-      <input class="button" type="submit" value="Save">
-      <input class="button" type="Reset">
-    <?php } else { ?>
-      <p><?= $permissions ?></p>
-    <?php } ?>
-  </form>
+
 </section>
 
 <section>
   <h3>Competencies</h3>
-  <select id="course_select">
-    <?php foreach ($courses as $c) { ?>
-      <option value="<?= $c['id'] ?>"><?= $c['name'] ?></option>>
-    <?php } ?>
-  </select>
-  <section>
-    <input type="button" value="Propose Training"
-           onclick="propose_training(this, <?= "'{$_SESSION['name']}', '{$name}'" ?>);"/>
-  </section>
+  <?php if ($is_mentor) { ?>
+    <section>
+      <select id="course_select">
+        <?php foreach ($courses as $c) { ?>
+          <option value="<?= $c['id'] ?>"><?= $c['name'] ?></option>>
+        <?php } ?>
+      </select>
+      <input type="button" value="Propose Training"
+             onclick="propose_training(this, <?= "'{$_SESSION['name']}', '{$name}'" ?>);"/>
+    </section>
+  <?php } ?>
   <section>
     <table>
       <?php foreach ($competencies as $c) { ?>
@@ -228,10 +235,18 @@ $stmt->close();
           <td><?= $c['can_understand'] ?></td>
           <td><?= $c['can_demonstrate'] ?></td>
           <td><?= $c['can_teach'] ?></td>
+
+          <td><input type="button" value="view"
+                     onclick="show_competency_info(<?= "'{$c['course_name']}',
+                     '{$c['mentor_name']}','{$c['can_understand']}',
+                     '{$c['can_demonstrate']}','{$c['can_teach']}',
+                     '{$c['project_info']}'" ?>)">
+          </td>
           <?php if ($c['mentor_name'] == $_SESSION['name']) { ?>
-            <td><a href="competency.php?comp_id=<?= $c['comp_id'] ?>">Assess</a>
+            <td><a
+                href="competency.php?comp_id=<?= $c['comp_id'] ?>">Assess</a>
             </td>
-          <?php } else echo "<td></td>"; ?>
+          <?php } ?>
         </tr>
       <?php } ?>
     </table>
@@ -264,11 +279,24 @@ $stmt->close();
             + `try again at a later time, or contact support.`);
         btn.disabled = false;
       });
+  }
 
-    function show_dlg(msg) {
-      el('dlg_content').innerText = msg;
-      _open('dlg');
-    }
+  function show_competency_info(course_name, mentor_name, can_understand,
+                                can_demonstrate, can_teach, project_info) {
+    let msg = `<h2>${course_name}</h2>
+    <h3>${mentor_name}</h3>
+
+    <p>understands: ${can_understand}</p>
+    <p>demonstrated: ${can_demonstrate}</p>
+    <p>can teach: ${can_teach}</p>
+    <p>${project_info}</p>`;
+
+    show_dlg(msg);
+  }
+
+  function show_dlg(msg) {
+    el('dlg_content').innerHTML = msg;
+    _open('dlg');
   }
 </script>
 

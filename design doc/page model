@@ -25,8 +25,8 @@ Personal Info page (regional can see/edit all students, elders just their studen
 [x] can invite student to work on a specific competency together
 [x] can see progress on specific competencies
 [x] leader can assess competencies (takes user to dedicated page)
-[ ] student can see progress on competencies
-[ ] double-check permission system
+[x] student can see progress on competencies
+[x] double-check permission system
 
 Competency
 [x] mentor can access
@@ -34,10 +34,9 @@ Competency
 [x] mentor can cancel work on a competency
 
 Misc
-[ ] primary navigation only shows available pages
+[x] primary navigation only shows available pages
 [ ] personal info page access controls - regional, mentors, individual, and viewers
-[ ] page titles/logos
-[ ] personal info page uses json for info update
+[x] page titles
 [ ] confirmation for adding/deleting mentors on dashboard
 [ ] competencies can become archived?
 [ ] textarea input (project info) able to store special characters

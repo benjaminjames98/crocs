@@ -106,12 +106,12 @@ $stmt->close();
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <title>Login</title>
+  <title>Dashboard</title>
   <script src="imports/js/utils.js"></script>
 </head>
 <body>
 
-<?php require_once 'imports/navbar_primary.php'; ?>
+<?php require_once 'navbar_primary.php'; ?>
 <?php if (isset($msg)) echo $msg; ?>
 <h1>CROCS</h1>
 <h2>Dashboard</h2>
